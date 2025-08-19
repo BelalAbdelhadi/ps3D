@@ -1,0 +1,13 @@
+# Exclude .cdf and .dta files
+*.cdf
+*.dta
+
+
+#Exclude log files
+log.out
+log.err
+
+#Exclude pyache files
+
+*.pyc
+
