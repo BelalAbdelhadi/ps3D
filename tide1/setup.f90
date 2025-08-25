@@ -6,12 +6,13 @@ module config_module
  implicit none
  
  ! adding a switch for forcing, set to .false at first
- logical, parameter :: enable_forcing = .false.
+ logical, parameter :: enable_forcing = .true.
  logical, parameter :: cutoff_forcing = .true.
 
  real*8, allocatable :: u_r(:,:,:),v_r(:,:,:),w_r(:,:,:),b_r(:,:,:)
  real*8, allocatable :: u_i(:,:,:),v_i(:,:,:),w_i(:,:,:),b_i(:,:,:)
- real*8 :: omega_forc
+ real*8, allocatable :: u_b(:,:,:),v_b(:,:,:),w_b(:,:,:),b_b(:,:,:)
+ real*8 :: omega_forc, rim = 100e3
  integer :: fac = 2
  real*8,parameter :: forcing_wavelength = 50e3
  real*8,parameter :: mean_flow_energy = 0.4**2/2.
@@ -222,6 +223,7 @@ subroutine set_initial_conditions
  call border_exchg_3D(w_i)
  call border_exchg_3D(b_i) 
 end subroutine set_initial_conditions
+
 
 
 
