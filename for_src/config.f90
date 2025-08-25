@@ -1,50 +1,56 @@
 
-! tidal beam hits eddy
+! tidal beam hits spectrum of vortical mode
 
 
 module config_module
  implicit none
+ 
+ ! adding a switch for forcing, set to .false at first
+ logical, parameter :: enable_forcing = .true.
+ logical, parameter :: cutoff_forcing = .true.
+
  real*8, allocatable :: u_r(:,:,:),v_r(:,:,:),w_r(:,:,:),b_r(:,:,:)
  real*8, allocatable :: u_i(:,:,:),v_i(:,:,:),w_i(:,:,:),b_i(:,:,:)
  real*8, allocatable :: u_b(:,:,:),v_b(:,:,:),w_b(:,:,:),b_b(:,:,:)
- real*8 :: omega_forc, rim=20e3
- integer :: fac = 1
+ real*8 :: omega_forc, rim = 100e3
+ integer :: fac = 2
+ real*8,parameter :: forcing_wavelength = 50e3
+ real*8,parameter :: mean_flow_energy = 0.4**2/2.
+ real*8,parameter :: wave_amplitude = 1.0
+ real*8 :: cspeed 
 end module config_module
-
 
 
 subroutine set_parameter
  use main_module 
-! use config_module
-  use config_module
+ use config_module
  implicit none
  
- nx=120*fac; ny=120*fac; nz = 10
+ nx=2*126*fac; ny=126*fac; nz = 100*fac
  Ro = 1.; dsqr = 1. 
  f0 = 1e-4
- N0 = f0*20
-   
- Lx = 400e3
- Ly = 400e3
- Lz = 1000.  
+ N0 = f0*30   
+ Lx = 2*500e3
+ Ly = 500e3
+ Lz = 4000.  
+ 
  dx=Lx/nx;dy=Ly/ny;dz=Lz/nz
-
- dt    = 800./fac
- runlen =  1e12
+ dt    = 100./fac
+ runlen =  10*86400.
  enable_AB_3_order = .true.
  enable_vertical_boundaries = .true.
  
  enable_diag_snap = .true.
- snapint = 86400.
+ snapint = 3600.
  tsmonint = snapint/10.
  
- Ahbi =  dx**4/(30*86400.) ! A = dx**4/T   
+ Ahbi =  dx**4/(60*86400.) ! A = dx**4/T   
  Khbi = Ahbi
   
  enable_diag_balance        = .true.
+ enable_diag_balance_filter = .true.
+ diag_balance_filter_width = 15
 end subroutine set_parameter 
-
-
 
 
 subroutine set_initial_conditions
@@ -54,8 +60,8 @@ subroutine set_initial_conditions
  implicit none
  integer :: i,j,k
  real*8 :: kx_d,ky_d,om2,fxa,phiz,x,y
- complex(p3dfft_type) :: g0,qx,qy,qz,qb,px,py,pz,pb
- complex(p3dfft_type),parameter  :: im = (0d0,1d0)
+ complex(real_type) :: g0,qx,qy,qz,qb,px,py,pz,pb
+ complex(real_type),parameter  :: im = (0d0,1d0)
  
  allocate( u_r(is_pe-onx:ie_pe+onx,js_pe-onx:je_pe+onx,ks_pe-onx:ke_pe+onx) ); u_r=0
  allocate( v_r(is_pe-onx:ie_pe+onx,js_pe-onx:je_pe+onx,ks_pe-onx:ke_pe+onx) ); v_r=0
@@ -221,17 +227,33 @@ end subroutine set_initial_conditions
 
 
 
+
 subroutine set_forcing 
  use main_module  
  use config_module
  implicit none
- real*8 :: t
+ real(real_type) :: t
  ! add wavemaker forcing:   u = u + dt*Re( exp(-i omega t) (u_r + i u_i) ) 
  !                            = u + dt*Re( (cos(-i omega t) + i sin(..) ) (u_r + i u_i) )
  !                            = u + dt*( cos(omega t) u_r + sin(omega t ) u_i  ) 
- t = dt*itt
- u =  u + dt*(cos(omega_forc*t)*u_r + sin(omega_forc*t)*u_i )
- v =  v + dt*(cos(omega_forc*t)*v_r + sin(omega_forc*t)*v_i )
- w =  w + dt*(cos(omega_forc*t)*w_r + sin(omega_forc*t)*w_i )
- b =  b + dt*(cos(omega_forc*t)*b_r + sin(omega_forc*t)*b_i )
+ if (enable_forcing) then
+  t = dt*itt
+  if (cutoff_forcing) then
+    if (t<Lx*0.9/cspeed) then ! switch off forcing before beams hits boundary
+      u =  u + dt*(cos(omega_forc*t)*u_r + sin(omega_forc*t)*u_i )
+      v =  v + dt*(cos(omega_forc*t)*v_r + sin(omega_forc*t)*v_i )
+      w =  w + dt*(cos(omega_forc*t)*w_r + sin(omega_forc*t)*w_i )
+      b =  b + dt*(cos(omega_forc*t)*b_r + sin(omega_forc*t)*b_i )
+    else
+      if (my_pe==0) print*,' forcing is switched off at t>',dt*itt/86400,' days'
+    endif
+  else 
+    u =  u + dt*(cos(omega_forc*t)*u_r + sin(omega_forc*t)*u_i )
+    v =  v + dt*(cos(omega_forc*t)*v_r + sin(omega_forc*t)*v_i )
+    w =  w + dt*(cos(omega_forc*t)*w_r + sin(omega_forc*t)*w_i )
+    b =  b + dt*(cos(omega_forc*t)*b_r + sin(omega_forc*t)*b_i )
+    if (my_pe==0 .and. mod(itt,100)==0) print*,' Forcing active at t=', t/86400, ' days'
+  endif
+ endif 
+
 end subroutine set_forcing
