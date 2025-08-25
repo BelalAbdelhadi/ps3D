@@ -26,13 +26,13 @@ subroutine set_parameter
  use config_module
  implicit none
  
- nx=2*126*fac; ny=126*fac; nz = 20*fac
+ nx=2*126*fac; ny=126*fac; nz = 100*fac
  Ro = 1.; dsqr = 1. 
  f0 = 1e-4
  N0 = f0*30   
  Lx = 2*500e3
  Ly = 500e3
- Lz = 2000.  
+ Lz = 4000.  
  
  dx=Lx/nx;dy=Ly/ny;dz=Lz/nz
  dt    = 100./fac
