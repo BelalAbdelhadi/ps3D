@@ -40,7 +40,7 @@ subroutine set_parameter
  enable_vertical_boundaries = .true.
  
  enable_diag_snap = .true.
- snapint = 3600.
+ snapint = 86400.
  tsmonint = snapint/10.
  
  Ahbi =  dx**4/(60*86400.) ! A = dx**4/T   

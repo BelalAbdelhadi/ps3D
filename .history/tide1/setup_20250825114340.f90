@@ -35,12 +35,12 @@ subroutine set_parameter
  
  dx=Lx/nx;dy=Ly/ny;dz=Lz/nz
  dt    = 100./fac
- runlen =  10*86400.
+ runlen =  100*86400.
  enable_AB_3_order = .true.
  enable_vertical_boundaries = .true.
  
  enable_diag_snap = .true.
- snapint = 3600.
+ snapint = 86400.
  tsmonint = snapint/10.
  
  Ahbi =  dx**4/(60*86400.) ! A = dx**4/T   
