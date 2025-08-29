@@ -7,7 +7,7 @@ module config_module
  
  ! adding a switch for forcing, set to .false at first
  logical, parameter :: enable_forcing = .true.
- logical, parameter :: cutoff_forcing = .true.
+ logical, parameter :: cutoff_forcing = .false.
 
  real*8, allocatable :: u_r(:,:,:),v_r(:,:,:),w_r(:,:,:),b_r(:,:,:)
  real*8, allocatable :: u_i(:,:,:),v_i(:,:,:),w_i(:,:,:),b_i(:,:,:)
@@ -16,7 +16,7 @@ module config_module
  integer :: fac = 2
  real*8,parameter :: forcing_wavelength = 50e3
  real*8,parameter :: mean_flow_energy = 0.4**2/2.
- real*8,parameter :: wave_amplitude = 1.0
+ real*8,parameter :: wave_amplitude = 2.0
  real*8 :: cspeed 
 end module config_module
 
@@ -35,8 +35,8 @@ subroutine set_parameter
  Lz = 4000.  
  
  dx=Lx/nx;dy=Ly/ny;dz=Lz/nz
- dt    = 100./fac
- runlen =  10*86400.
+ dt    = 60./fac
+ runlen =  20*86400.
  enable_AB_3_order = .true.
  enable_vertical_boundaries = .true.
  
